@@ -13,7 +13,7 @@ import java.util.Optional;
  * @author neumaol
  *
  */
-class WindowsUtils {
+final class WindowsUtils {
 	private static final String REGQUERY_UTIL = "reg query ";
 
 	private static final String REGSTR_TOKEN = "REG_SZ";

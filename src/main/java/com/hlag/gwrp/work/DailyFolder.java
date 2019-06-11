@@ -26,15 +26,15 @@ import javafx.stage.Stage;
  * @author neumaol
  *
  */
-@SuppressWarnings("restriction")
 public class DailyFolder extends Application {
+	/** Pattern defining how a <code>DailyFolder</code> folder looks like */
+	private static final Pattern FOLDER_PATTERN = Pattern.compile("^([0-9]{4})-([0-9]{2})-([0-9]{2})$");
 
-	private static final String FOLDER_PATTERN_STRING = "^([0-9]{4})-([0-9]{2})-([0-9]{2})$";
+	/** Filter restricting the file search to the {@link #FOLDER_PATTERN} */
+	private static final FileFilter DATE_FOLDER_FILTER
+			= file -> file != null && file.isDirectory() && FOLDER_PATTERN.matcher(file.getName()).matches();
 
-	private static final Pattern FOLDER_PATTERN = Pattern.compile(FOLDER_PATTERN_STRING);
-
-	private static final FileFilter DATE_FOLDER_FILTER = new DateFolderFilter();
-
+	/** Used to generate new folder names */
 	private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd");
 
 	/**
@@ -43,13 +43,21 @@ public class DailyFolder extends Application {
 	 *
 	 * @param args The application's command line arguments. Will be ignored
 	 */
+	@SuppressWarnings("uncommentedmain")
 	public static void main(final String[] args) {
 		launch();
 	}
 
+	/**
+	 * Create a {@link DailyFolder} instance
+	 */
+	public DailyFolder() {
+		// nothing to do
+	}
+
 	/** {@inheritDoc} */
 	@Override
-	public void start(final @Nullable Stage stage) throws Exception {
+	public void start(@Nullable final Stage stage) throws Exception {
 		doDailyFolderWork(Objects.requireNonNull(stage));
 	}
 
@@ -127,13 +135,6 @@ public class DailyFolder extends Application {
 			}
 		}
 		return notDeletedFolders;
-	}
-
-	private static class DateFolderFilter implements FileFilter {
-		@Override
-		public boolean accept(final @Nullable File file) {
-			return file != null && file.isDirectory() && FOLDER_PATTERN.matcher(file.getName()).matches();
-		}
 	}
 
 	private boolean deepDelete(final File folder) {

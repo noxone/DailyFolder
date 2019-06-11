@@ -25,7 +25,11 @@ import javafx.stage.Stage;
  *
  */
 @SuppressWarnings("restriction")
-public class DeleteFoldersDialogFx {
+public final class DeleteFoldersDialogFx {
+	private DeleteFoldersDialogFx() {
+		throw new RuntimeException();
+	}
+
 	/**
 	 * Shows a dialog to the user asking to delete folders.
 	 *
