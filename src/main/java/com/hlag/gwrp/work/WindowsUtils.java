@@ -1,9 +1,18 @@
 package com.hlag.gwrp.work;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
+import java.io.UncheckedIOException;
+import java.util.Optional;
 
+/**
+ * Helper class containing methods to access Windows specific functionality
+ *
+ * @author neumaol
+ *
+ */
 class WindowsUtils {
 	private static final String REGQUERY_UTIL = "reg query ";
 
@@ -12,16 +21,16 @@ class WindowsUtils {
 	private static final String DESKTOP_FOLDER_CMD = REGQUERY_UTIL
 			+ "\"HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders\" /v DESKTOP";
 
-	private WindowsUtils() {}
+	private WindowsUtils() {
+		throw new RuntimeException();
+	}
 
-	// static File getLinksFolder(){
-	// return new File(System.getenv("userprofile"));
-	// }
-	//
-	// static void createShortcutTo(File folder){
-	// }
-
-	static String getCurrentUserDesktopPath() {
+	/**
+	 * Retrieve the path to the current users Windows desktop
+	 *
+	 * @return the
+	 */
+	static Optional<File> getCurrentUserDesktopPath() {
 		try {
 			final Process process = Runtime.getRuntime().exec(DESKTOP_FOLDER_CMD);
 			final StreamReader reader = new StreamReader(process.getInputStream());
@@ -33,15 +42,15 @@ class WindowsUtils {
 			final int p = result.indexOf(REGSTR_TOKEN);
 
 			if (p == -1) {
-				return null;
+				return Optional.empty();
 			}
-			return result.substring(p + REGSTR_TOKEN.length()).trim();
-		} catch (final Exception e) {
-			return null;
+			return Optional.of(new File(result.substring(p + REGSTR_TOKEN.length()).trim()));
+		} catch (@SuppressWarnings("unused") final Exception ignore) {
+			return Optional.empty();
 		}
 	}
 
-	static class StreamReader extends Thread {
+	private static class StreamReader extends Thread {
 		private InputStream is;
 
 		private StringWriter sw;
@@ -59,7 +68,7 @@ class WindowsUtils {
 					sw.write(c);
 				}
 			} catch (final IOException e) {
-				;
+				throw new UncheckedIOException(e);
 			}
 		}
 

@@ -7,7 +7,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import javafx.application.HostServices;
 import javafx.application.Platform;
@@ -19,8 +18,25 @@ import javafx.scene.control.Tooltip;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
+/**
+ * Utility class generating the simple folder deletion dialog.
+ *
+ * @author neumaol
+ *
+ */
+@SuppressWarnings("restriction")
 public class DeleteFoldersDialogFx {
-	static Stream<File> showDialog(final Stage stage,
+	/**
+	 * Shows a dialog to the user asking to delete folders.
+	 *
+	 * @param stage          the stage to be used for the dialog
+	 * @param folders        the folders to be presented to the user
+	 * @param hostServices   an object to interact with the operating system
+	 * @param folderConsumer an action to be performed for the selected folders
+	 * @param alwaysOnTop    whether the window should always be on top of other
+	 *                       windows
+	 */
+	static void showDialog(final Stage stage,
 			final Collection<File> folders,
 			final HostServices hostServices,
 			final Consumer<Collection<File>> folderConsumer,
@@ -70,8 +86,6 @@ public class DeleteFoldersDialogFx {
 		stage.setMinWidth(220);
 		stage.setMinHeight(150);
 		stage.show();
-
-		return null;
 	}
 
 	private static String getTooltipText(final File folder) {
