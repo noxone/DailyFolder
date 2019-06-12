@@ -1,12 +1,18 @@
 package com.hlag.gwrp.work;
 
-import java.io.File;
+import static java.util.stream.Collectors.joining;
+import static java.util.stream.Collectors.toList;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javafx.application.HostServices;
 import javafx.application.Platform;
@@ -26,6 +32,9 @@ import javafx.stage.Stage;
  */
 @SuppressWarnings("restriction")
 public final class DeleteFoldersDialogFx {
+	/** the maximum number of files to be shown in the tooltip of a folder */
+	private static final int LIMIT_OF_FILES_IN_TOOLTIP = 15;
+
 	private DeleteFoldersDialogFx() {
 		throw new RuntimeException();
 	}
@@ -41,18 +50,18 @@ public final class DeleteFoldersDialogFx {
 	 *                       windows
 	 */
 	static void showDialog(final Stage stage,
-			final Collection<File> folders,
+			final Collection<Path> folders,
 			final HostServices hostServices,
-			final Consumer<Collection<File>> folderConsumer,
+			final Consumer<Collection<Path>> folderConsumer,
 			final boolean alwaysOnTop) {
 		final VBox pane = new VBox();
 		pane.setPadding(new Insets(15));
 		pane.setMaxWidth(Double.MAX_VALUE);
 		pane.setSpacing(5);
 
-		final Map<CheckBox, File> checkboxes = new LinkedHashMap<>();
-		for (final File folder : folders) {
-			final CheckBox box = new CheckBox(folder.getName());
+		final Map<CheckBox, Path> checkboxes = new LinkedHashMap<>();
+		for (final Path folder : folders) {
+			final CheckBox box = new CheckBox(folder.getFileName().toString());
 			box.setMaxWidth(Double.MAX_VALUE);
 			box.setTooltip(new Tooltip(getTooltipText(folder)));
 			pane.getChildren().add(box);
@@ -60,7 +69,7 @@ public final class DeleteFoldersDialogFx {
 
 			box.setOnMouseClicked(me -> {
 				if (me.getClickCount() == 2) {
-					hostServices.showDocument(folder.getAbsolutePath());
+					hostServices.showDocument(folder.toAbsolutePath().toString());
 				}
 			});
 		}
@@ -72,7 +81,7 @@ public final class DeleteFoldersDialogFx {
 		pane.getChildren().add(button);
 
 		button.setOnAction(e -> {
-			final List<File> foldersToDelete = checkboxes//
+			final List<Path> foldersToDelete = checkboxes//
 					.entrySet()
 					.stream()
 					.filter(entry -> entry.getKey().isSelected())
@@ -92,32 +101,27 @@ public final class DeleteFoldersDialogFx {
 		stage.show();
 	}
 
-	private static String getTooltipText(final File folder) {
-		final StringBuilder sb = new StringBuilder();
-		final File[] files = folder.listFiles();
-		if (files.length == 0) {
-			sb.append("empty");
-		} else if (files.length == 1) {
-			sb.append(files.length).append(" item:\n");
-		} else {
-			sb.append(files.length).append(" items:\n");
+	private static String getTooltipText(final Path folder) {
+		final List<Path> files;
+		try (Stream<Path> paths = Files.list(folder)) {
+			files = paths.limit(LIMIT_OF_FILES_IN_TOOLTIP + 1).collect(toList());
+		} catch (final IOException ignore) {
+			return "Unknown content";
 		}
 
-		int count = 0;
-		for (final File file : files) {
-			if (file.isDirectory()) {
-				sb.append(" + ");
-			} else {
-				sb.append(" - ");
-			}
-			sb.append(file.getName()).append("\n");
-			if (++count > 14) {
-				break;
-			}
+		if (files.isEmpty()) {
+			return "empty";
 		}
-		if (count < files.length) {
-			sb.append(" ... and ").append(files.length - count).append(" more");
+
+		final StringBuilder tooltipText = new StringBuilder();
+		tooltipText.append("Content:\n");
+		tooltipText.append(files.subList(0, Math.min(files.size(), LIMIT_OF_FILES_IN_TOOLTIP))
+				.stream()
+				.map(path -> (Files.isDirectory(path) ? "+" : "-") + " " + path.getFileName().toString())
+				.collect(joining("\n")));
+		if (files.size() > LIMIT_OF_FILES_IN_TOOLTIP) {
+			tooltipText.append("\n... and even more");
 		}
-		return sb.toString();
+		return tooltipText.toString();
 	}
 }

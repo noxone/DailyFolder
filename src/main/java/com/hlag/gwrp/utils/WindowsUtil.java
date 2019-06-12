@@ -5,6 +5,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
 import java.io.UncheckedIOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Optional;
 
 /**
@@ -13,7 +15,7 @@ import java.util.Optional;
  * @author neumaol
  *
  */
-public final class WindowsUtils {
+public final class WindowsUtil {
 	private static final String REGQUERY_UTIL = "reg query ";
 
 	private static final String REGSTR_TOKEN = "REG_SZ";
@@ -21,16 +23,16 @@ public final class WindowsUtils {
 	private static final String DESKTOP_FOLDER_CMD = REGQUERY_UTIL
 			+ "\"HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders\" /v DESKTOP";
 
-	private WindowsUtils() {
+	private WindowsUtil() {
 		throw new RuntimeException();
 	}
 
 	/**
-	 * Retrieve the path to the current users Windows desktop
+	 * Retrieve the path to the current user's Windows desktop
 	 *
-	 * @return the
+	 * @return the path to user's Windows desktop
 	 */
-	public static Optional<File> getCurrentUserDesktopPath() {
+	public static Optional<Path> getCurrentUserDesktopPath() {
 		try {
 			final Process process = Runtime.getRuntime().exec(DESKTOP_FOLDER_CMD);
 			final StreamReader reader = new StreamReader(process.getInputStream());
@@ -44,10 +46,19 @@ public final class WindowsUtils {
 			if (p == -1) {
 				return Optional.empty();
 			}
-			return Optional.of(new File(result.substring(p + REGSTR_TOKEN.length()).trim()));
+			return Optional.of(Paths.get(result.substring(p + REGSTR_TOKEN.length()).trim()));
 		} catch (final Exception ignore) {
 			return Optional.empty();
 		}
+	}
+
+	/**
+	 * Retrieve the path to the current user's Windows desktop
+	 *
+	 * @return the path to the user's Windows desktop
+	 */
+	public static Optional<File> getCurrentUserDesktopFile() {
+		return getCurrentUserDesktopPath().map(Path::toFile);
 	}
 
 	private static class StreamReader extends Thread {

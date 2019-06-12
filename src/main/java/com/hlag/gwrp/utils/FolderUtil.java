@@ -8,7 +8,9 @@ import java.nio.file.Path;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
@@ -21,9 +23,10 @@ import java.util.stream.Stream;
 public final class FolderUtil {
 	/** DateFormatter to create a name for a daily folder */
 	private static final DateTimeFormatter FOLDER_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+
 	/** Pattern to recognize a daily folder */
-	private static final Pattern FOLDER_PATTERN = Pattern
-			.compile("^(?<year>[0-9]{4})-(?<month>[0-9]{2})-(?<day>[0-9]{2})$");
+	private static final Pattern FOLDER_PATTERN
+			= Pattern.compile("^(?<year>[0-9]{4})-(?<month>[0-9]{2})-(?<day>[0-9]{2})$");
 
 	private FolderUtil() {
 		throw new RuntimeException();
@@ -67,11 +70,17 @@ public final class FolderUtil {
 	 * Creates the todays folder
 	 *
 	 * @param root the folder which will be used as the base path for todays folder
+	 * @return the path to todays folder
 	 * @throws IOException if something fails while creating the folder
 	 */
-	public static void createTodaysFolder(final Path root) throws IOException {
-		final Path todaysFolder = getPathToTodaysFolder(root);
-		Files.createDirectories(todaysFolder);
+	public static Optional<Path> createTodaysFolder(final Path root) {
+		try {
+			final Path todaysFolder = getPathToTodaysFolder(root);
+			Files.createDirectories(todaysFolder);
+			return Optional.of(todaysFolder);
+		} catch (final IOException ignore) {
+			return Optional.empty();
+		}
 	}
 
 	/**
@@ -111,25 +120,46 @@ public final class FolderUtil {
 		}
 	}
 
-	public static boolean deleteRecursivly(final Path folder) {
+	/**
+	 * Delete a given path and if it is a directory also delete its content
+	 *
+	 * @param path the file system item to delete
+	 * @return <code>true</code> if the deletion was successful. <code>false</code>
+	 *         if the path did not exists or a problem occurred while deleting.
+	 */
+	public static boolean deleteRecursivly(final Path path) {
 		// check if there is something to delete
-		if (!Files.exists(folder)) {
+		if (!Files.exists(path)) {
 			return false;
 		}
 
 		try {
 			// if it is a directory delete the content
-			try (Stream<Path> stream = Files.list(folder)) {
+			try (Stream<Path> stream = Files.list(path)) {
 				if (!stream.allMatch(FolderUtil::deleteRecursivly)) {
 					return false;
 				}
 			}
 
 			// finally delete this thing
-			return Files.deleteIfExists(folder);
+			return Files.deleteIfExists(path);
 		} catch (final IOException ignore) {
 			// TODO log exception
 			return false;
 		}
+	}
+
+	/**
+	 * Deletes multiple paths recursivly and returns all paths that could not be
+	 * deleted
+	 *
+	 * @param paths the paths to be deleted
+	 * @return the paths that could not be deleted
+	 */
+	public static List<Path> deleteMultipleRecursivly(final Collection<Path> paths) {
+		return paths//
+				.stream()
+				.filter(path -> !FolderUtil.deleteRecursivly(path))
+				.collect(toList());
 	}
 }

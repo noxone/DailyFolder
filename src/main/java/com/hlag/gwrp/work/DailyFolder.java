@@ -1,21 +1,22 @@
 package com.hlag.gwrp.work;
 
+import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 
-import java.io.File;
-import java.io.FileFilter;
 import java.io.IOException;
 import java.io.InputStream;
-import java.text.SimpleDateFormat;
+import java.io.UncheckedIOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Date;
 import java.util.Objects;
 import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import com.hlag.gwrp.utils.WindowsUtils;
+import com.hlag.gwrp.utils.FolderUtil;
+import com.hlag.gwrp.utils.WindowsUtil;
 
 import edu.umd.cs.findbugs.annotations.Nullable;
 import javafx.application.Application;
@@ -30,15 +31,6 @@ import javafx.stage.Stage;
  */
 @SuppressWarnings("restriction")
 public class DailyFolder extends Application {
-	/** Pattern defining how a <code>DailyFolder</code> folder looks like */
-	private static final Pattern FOLDER_PATTERN = Pattern.compile("^([0-9]{4})-([0-9]{2})-([0-9]{2})$");
-
-	/** Filter restricting the file search to the {@link #FOLDER_PATTERN} */
-	private static final FileFilter DATE_FOLDER_FILTER = file -> file != null && file.isDirectory()
-			&& FOLDER_PATTERN.matcher(file.getName()).matches();
-
-	/** Used to generate new folder names */
-	private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd");
 
 	/**
 	 * Start the application. <br>
@@ -64,17 +56,12 @@ public class DailyFolder extends Application {
 	}
 
 	private void doDailyFolderWork(final Stage stage) {
-		final File desktopFolder = WindowsUtils.getCurrentUserDesktopPath()
+		final Path desktopFolder = WindowsUtil.getCurrentUserDesktopPath()
 				.orElseThrow(() -> new RuntimeException("Path to Windows Desktop is unknown."));
 
-		Collection<File> foldersToDeleteEventually = new ArrayList<>();
-		try {
-			foldersToDeleteEventually = readFoldersToDeleteEventually(desktopFolder);
-		} catch (final IOException ignore) {
-			/* empty on purpose */
-		}
-		final Collection<File> notDeletedFolders = removeEmptyDateFolders(desktopFolder);
-		createTodaysFolder(desktopFolder);
+		final Collection<Path> foldersToDeleteEventually = readFoldersToDeleteEventually(desktopFolder);
+		final Collection<Path> notDeletedFolders = removeEmptyDateFolders(desktopFolder);
+		FolderUtil.createTodaysFolder(desktopFolder);
 
 		if (!notDeletedFolders.isEmpty()) {
 			notDeletedFolders.removeAll(foldersToDeleteEventually);
@@ -84,70 +71,54 @@ public class DailyFolder extends Application {
 			if (ontop != null) {
 				alwaysOnTop = Boolean.parseBoolean(ontop);
 			}
-			DeleteFoldersDialogFx.showDialog(stage, notDeletedFolders, getHostServices(),
-					folders -> deleteFolders(folders), alwaysOnTop);
+			DeleteFoldersDialogFx.showDialog(stage,
+					notDeletedFolders,
+					getHostServices(),
+					folders -> deleteFolders(folders),
+					alwaysOnTop);
 		}
 	}
 
-	private void deleteFolders(final Collection<File> folders) {
-		folders//
-				.stream().filter(f -> !deepDelete(f))
-				.forEach(f -> System.out.println("Unable to delete: " + f.getAbsolutePath()));
+	private void deleteFolders(final Collection<Path> paths) {
+		FolderUtil.deleteMultipleRecursivly(paths)
+				.forEach(path -> System.out.println("Unable to delete: " + path.toAbsolutePath().toString()));
 	}
 
-	private Collection<File> readFoldersToDeleteEventually(final File root) throws IOException {
+	private Collection<Path> readFoldersToDeleteEventually(final Path root) {
 		final Properties properties = new Properties();
 		try (InputStream in = getClass().getResourceAsStream("folders.properties")) {
 			properties.load(in);
+		} catch (final IOException ignore) {
+			return new ArrayList<>();
 		}
 		final Pattern pattern = Pattern.compile("^fileToDelete\\.[0-9]+$");
 		return properties//
-				.stringPropertyNames().stream().map(pattern::matcher) // try to match the keys
+				.stringPropertyNames()
+				.stream()
+				.map(pattern::matcher) // try to match the keys
 				.filter(Matcher::matches) // only use matching values
 				.map(matcher -> matcher.group(0)) // extract the matched text
 				.map(properties::getProperty) // get the property value for the key
-				.map(filename -> new File(root, filename)) // create a file object pointing to that file
-				.filter(File::exists) // only return existing files
+				.map(root::resolve) // create a file object pointing to that file
+				.filter(Files::exists) // only return existing files
 				.collect(toSet());
 	}
 
-	private void createTodaysFolder(final File root) {
-		final String name = DATE_FORMAT.format(new Date());
-		final File today = new File(root, name);
-		if (today.mkdirs()) {
-			System.out.println("Created: " + today.getAbsolutePath());
-		} else {
-			System.out.println("Unable to create: " + today.getAbsolutePath());
-		}
-	}
-
-	private Collection<File> removeEmptyDateFolders(final File root) {
-		final Collection<File> notDeletedFolders = new ArrayList<>();
-		final File[] dateFolders = root.listFiles(DATE_FOLDER_FILTER);
-		for (final File folder : dateFolders) {
-			if (folder.delete()) {
-				System.out.println("Deleted: " + folder.getAbsolutePath());
-			} else {
-				notDeletedFolders.add(folder);
-				System.out.println("Not deleted: " + folder.getAbsolutePath());
-			}
-		}
-		return notDeletedFolders;
-	}
-
-	private boolean deepDelete(final File folder) {
-		boolean ok = folder.exists();
-		if (ok) {
-			for (final File file : folder.listFiles()) {
-				if (file.isFile()) {
-					ok |= file.delete();
-				} else if (file.isDirectory()) {
-					ok |= deepDelete(file);
-					ok |= file.delete();
-				}
-			}
-			folder.delete();
-		}
-		return ok;
+	private Collection<Path> removeEmptyDateFolders(final Path root) {
+		return FolderUtil.findDailyFolders(root)//
+				.stream()
+				.filter(path -> {
+					try {
+						if (Files.deleteIfExists(path)) {
+							System.out.println("Deleted: " + path.toAbsolutePath().toString());
+							return false;
+						}
+					} catch (final IOException e) {
+						throw new UncheckedIOException(e);
+					}
+					System.out.println("Not deleted: " + path.toAbsolutePath().toString());
+					return true;
+				})
+				.collect(toList());
 	}
 }
