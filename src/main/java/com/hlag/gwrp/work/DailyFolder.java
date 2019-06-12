@@ -15,6 +15,8 @@ import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import com.hlag.gwrp.utils.WindowsUtils;
+
 import edu.umd.cs.findbugs.annotations.Nullable;
 import javafx.application.Application;
 import javafx.stage.Stage;
@@ -26,13 +28,14 @@ import javafx.stage.Stage;
  * @author neumaol
  *
  */
+@SuppressWarnings("restriction")
 public class DailyFolder extends Application {
 	/** Pattern defining how a <code>DailyFolder</code> folder looks like */
 	private static final Pattern FOLDER_PATTERN = Pattern.compile("^([0-9]{4})-([0-9]{2})-([0-9]{2})$");
 
 	/** Filter restricting the file search to the {@link #FOLDER_PATTERN} */
-	private static final FileFilter DATE_FOLDER_FILTER
-			= file -> file != null && file.isDirectory() && FOLDER_PATTERN.matcher(file.getName()).matches();
+	private static final FileFilter DATE_FOLDER_FILTER = file -> file != null && file.isDirectory()
+			&& FOLDER_PATTERN.matcher(file.getName()).matches();
 
 	/** Used to generate new folder names */
 	private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd");
@@ -43,7 +46,6 @@ public class DailyFolder extends Application {
 	 *
 	 * @param args The application's command line arguments. Will be ignored
 	 */
-	@SuppressWarnings("uncommentedmain")
 	public static void main(final String[] args) {
 		launch();
 	}
@@ -68,7 +70,9 @@ public class DailyFolder extends Application {
 		Collection<File> foldersToDeleteEventually = new ArrayList<>();
 		try {
 			foldersToDeleteEventually = readFoldersToDeleteEventually(desktopFolder);
-		} catch (@SuppressWarnings("unused") final IOException ignore) { /* empty on purpose */ }
+		} catch (final IOException ignore) {
+			/* empty on purpose */
+		}
 		final Collection<File> notDeletedFolders = removeEmptyDateFolders(desktopFolder);
 		createTodaysFolder(desktopFolder);
 
@@ -80,18 +84,14 @@ public class DailyFolder extends Application {
 			if (ontop != null) {
 				alwaysOnTop = Boolean.parseBoolean(ontop);
 			}
-			DeleteFoldersDialogFx.showDialog(stage,
-					notDeletedFolders,
-					getHostServices(),
-					folders -> deleteFolders(folders),
-					alwaysOnTop);
+			DeleteFoldersDialogFx.showDialog(stage, notDeletedFolders, getHostServices(),
+					folders -> deleteFolders(folders), alwaysOnTop);
 		}
 	}
 
 	private void deleteFolders(final Collection<File> folders) {
 		folders//
-				.stream()
-				.filter(f -> !deepDelete(f))
+				.stream().filter(f -> !deepDelete(f))
 				.forEach(f -> System.out.println("Unable to delete: " + f.getAbsolutePath()));
 	}
 
@@ -102,9 +102,7 @@ public class DailyFolder extends Application {
 		}
 		final Pattern pattern = Pattern.compile("^fileToDelete\\.[0-9]+$");
 		return properties//
-				.stringPropertyNames()
-				.stream()
-				.map(pattern::matcher) // try to match the keys
+				.stringPropertyNames().stream().map(pattern::matcher) // try to match the keys
 				.filter(Matcher::matches) // only use matching values
 				.map(matcher -> matcher.group(0)) // extract the matched text
 				.map(properties::getProperty) // get the property value for the key

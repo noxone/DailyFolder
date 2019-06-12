@@ -1,4 +1,4 @@
-package com.hlag.gwrp.work;
+package com.hlag.gwrp.utils;
 
 import java.io.File;
 import java.io.IOException;
@@ -13,7 +13,7 @@ import java.util.Optional;
  * @author neumaol
  *
  */
-final class WindowsUtils {
+public final class WindowsUtils {
 	private static final String REGQUERY_UTIL = "reg query ";
 
 	private static final String REGSTR_TOKEN = "REG_SZ";
@@ -30,7 +30,7 @@ final class WindowsUtils {
 	 *
 	 * @return the
 	 */
-	static Optional<File> getCurrentUserDesktopPath() {
+	public static Optional<File> getCurrentUserDesktopPath() {
 		try {
 			final Process process = Runtime.getRuntime().exec(DESKTOP_FOLDER_CMD);
 			final StreamReader reader = new StreamReader(process.getInputStream());
@@ -45,7 +45,7 @@ final class WindowsUtils {
 				return Optional.empty();
 			}
 			return Optional.of(new File(result.substring(p + REGSTR_TOKEN.length()).trim()));
-		} catch (@SuppressWarnings("unused") final Exception ignore) {
+		} catch (final Exception ignore) {
 			return Optional.empty();
 		}
 	}
