@@ -30,11 +30,23 @@ import javafx.stage.Stage;
  * @author neumaol
  *
  */
-@SuppressWarnings("restriction")
 public final class DeleteFoldersDialogFx {
+	/** Space between buttons */
+	private static final int BUTTON_PANE_SPACING = 5;
+
+	/** Space around buttons */
+	private static final int BUTTON_PANE_PADDING = 15;
+
+	/** Minimum window height */
+	private static final int WINDOW_MIN_HEIGHT = 150;
+
+	/** Minimum window width */
+	private static final int WINDOW_MIN_WIDTH = 220;
+
 	/** the maximum number of files to be shown in the tooltip of a folder */
 	private static final int LIMIT_OF_FILES_IN_TOOLTIP = 15;
 
+	/** private constructor to prevent instantiation */
 	private DeleteFoldersDialogFx() {
 		throw new RuntimeException();
 	}
@@ -55,15 +67,15 @@ public final class DeleteFoldersDialogFx {
 			final Consumer<Collection<Path>> folderConsumer,
 			final boolean alwaysOnTop) {
 		final VBox pane = new VBox();
-		pane.setPadding(new Insets(15));
+		pane.setPadding(new Insets(BUTTON_PANE_PADDING));
 		pane.setMaxWidth(Double.MAX_VALUE);
-		pane.setSpacing(5);
+		pane.setSpacing(BUTTON_PANE_SPACING);
 
 		final Map<CheckBox, Path> checkboxes = new LinkedHashMap<>();
 		for (final Path folder : folders) {
 			final CheckBox box = new CheckBox(folder.getFileName().toString());
 			box.setMaxWidth(Double.MAX_VALUE);
-			box.setTooltip(new Tooltip(getTooltipText(folder)));
+			box.setTooltip(new Tooltip(createTooltipText(folder)));
 			pane.getChildren().add(box);
 			checkboxes.put(box, folder);
 
@@ -77,7 +89,6 @@ public final class DeleteFoldersDialogFx {
 		final Button button = new Button("Delete");
 		button.setDefaultButton(true);
 		button.setMaxWidth(Double.MAX_VALUE);
-		// pane.add(button, 0, index);
 		pane.getChildren().add(button);
 
 		button.setOnAction(e -> {
@@ -96,12 +107,18 @@ public final class DeleteFoldersDialogFx {
 		stage.setResizable(false);
 		stage.setAlwaysOnTop(alwaysOnTop);
 		stage.setTitle("Delete folders");
-		stage.setMinWidth(220);
-		stage.setMinHeight(150);
+		stage.setMinWidth(WINDOW_MIN_WIDTH);
+		stage.setMinHeight(WINDOW_MIN_HEIGHT);
 		stage.show();
 	}
 
-	private static String getTooltipText(final Path folder) {
+	/**
+	 * Create tool tip text for the given folder
+	 *
+	 * @param folder the folder to create the tooltip text for
+	 * @return the generated tooltip text
+	 */
+	private static String createTooltipText(final Path folder) {
 		final List<Path> files;
 		try (Stream<Path> paths = Files.list(folder)) {
 			files = paths.limit(LIMIT_OF_FILES_IN_TOOLTIP + 1).collect(toList());

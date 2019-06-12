@@ -16,13 +16,17 @@ import java.util.Optional;
  *
  */
 public final class WindowsUtil {
+	/** Command to retrieve values from the Windows registry */
 	private static final String REGQUERY_UTIL = "reg query ";
 
+	/** Some string used later */
 	private static final String REGSTR_TOKEN = "REG_SZ";
 
+	/** Registry path to the information where the Windows desktop is */
 	private static final String DESKTOP_FOLDER_CMD = REGQUERY_UTIL
 			+ "\"HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders\" /v DESKTOP";
 
+	/** private constructor to not allow instantiation */
 	private WindowsUtil() {
 		throw new RuntimeException();
 	}
@@ -35,7 +39,7 @@ public final class WindowsUtil {
 	public static Optional<Path> getCurrentUserDesktopPath() {
 		try {
 			final Process process = Runtime.getRuntime().exec(DESKTOP_FOLDER_CMD);
-			final StreamReader reader = new StreamReader(process.getInputStream());
+			final InputStreamCapturingThread reader = new InputStreamCapturingThread(process.getInputStream());
 
 			reader.start();
 			process.waitFor();
@@ -47,7 +51,7 @@ public final class WindowsUtil {
 				return Optional.empty();
 			}
 			return Optional.of(Paths.get(result.substring(p + REGSTR_TOKEN.length()).trim()));
-		} catch (final Exception ignore) {
+		} catch (final InterruptedException | IOException ignore) {
 			return Optional.empty();
 		}
 	}
@@ -61,16 +65,30 @@ public final class WindowsUtil {
 		return getCurrentUserDesktopPath().map(Path::toFile);
 	}
 
-	private static class StreamReader extends Thread {
+	/**
+	 * Thread specialized to read process output
+	 *
+	 * @author Olaf Neumann
+	 *
+	 */
+	private static class InputStreamCapturingThread extends Thread {
+		/** The stream to read from */
 		private InputStream is;
 
+		/** Buffer to capture output in */
 		private StringWriter sw;
 
-		StreamReader(final InputStream is) {
+		/**
+		 * Create a new capturing thread to read from the given stream
+		 *
+		 * @param is the stream to read from
+		 */
+		InputStreamCapturingThread(final InputStream is) {
 			this.is = is;
 			sw = new StringWriter();
 		}
 
+		/** {@inheritDoc} */
 		@Override
 		public void run() {
 			try {
@@ -83,6 +101,11 @@ public final class WindowsUtil {
 			}
 		}
 
+		/**
+		 * Retrieve the captured data
+		 *
+		 * @return the captured data
+		 */
 		String getResult() {
 			return sw.toString();
 		}

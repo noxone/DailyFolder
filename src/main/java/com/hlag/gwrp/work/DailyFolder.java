@@ -28,7 +28,7 @@ import javafx.stage.Stage;
  * @author neumaol
  *
  */
-@SuppressWarnings("restriction")
+@SuppressWarnings("uncommentedmain")
 public class DailyFolder extends Application {
 
 	/**
@@ -54,6 +54,11 @@ public class DailyFolder extends Application {
 		doDailyFolderWork(Objects.requireNonNull(stage));
 	}
 
+	/**
+	 * Do the real work
+	 *
+	 * @param stage the stage for the dialog
+	 */
 	private void doDailyFolderWork(final Stage stage) {
 		final Path desktopFolder = WindowsUtil.getCurrentUserDesktopPath()
 				.orElseThrow(() -> new RuntimeException("Path to Windows Desktop is unknown."));
@@ -78,12 +83,24 @@ public class DailyFolder extends Application {
 		}
 	}
 
+	/**
+	 * Delete the given folders
+	 *
+	 * @param paths the folders to delete
+	 */
 	private void deleteFolders(final Collection<Path> paths) {
 		FolderUtil.deleteMultipleRecursivly(paths)
 				.forEach(path -> System.out.println("Unable to delete: " + path.toAbsolutePath().toString()));
 	}
 
-	private Collection<Path> readFoldersToDeleteEventually(final Path root) {
+	/**
+	 * Read entries from a {@link Properties} file denoting folders to always be
+	 * deleted
+	 *
+	 * @param desktopFolder the desktop folder
+	 * @return all found paths
+	 */
+	private Collection<Path> readFoldersToDeleteEventually(final Path desktopFolder) {
 		final Properties properties = new Properties();
 		try (InputStream in = getClass().getResourceAsStream("folders.properties")) {
 			properties.load(in);
@@ -98,11 +115,17 @@ public class DailyFolder extends Application {
 				.filter(Matcher::matches) // only use matching values
 				.map(matcher -> matcher.group(0)) // extract the matched text
 				.map(properties::getProperty) // get the property value for the key
-				.map(root::resolve) // create a file object pointing to that file
+				.map(desktopFolder::resolve) // create a file object pointing to that file
 				.filter(Files::exists) // only return existing files
 				.collect(toSet());
 	}
 
+	/**
+	 * Removes empty date folders
+	 *
+	 * @param root the desktop folder
+	 * @return the folders that were not deleted
+	 */
 	private Collection<Path> removeEmptyDateFolders(final Path root) {
 		return FolderUtil.findDailyFolders(root)//
 				.stream()

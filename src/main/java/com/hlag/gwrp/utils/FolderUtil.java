@@ -28,10 +28,18 @@ public final class FolderUtil {
 	private static final Pattern FOLDER_PATTERN
 			= Pattern.compile("^(?<year>[0-9]{4})-(?<month>[0-9]{2})-(?<day>[0-9]{2})$");
 
+	/**
+	 * Private constructor to not allow instantiation
+	 */
 	private FolderUtil() {
 		throw new RuntimeException();
 	}
 
+	/**
+	 * Return the name of todays folder
+	 *
+	 * @return the name of todays folder
+	 */
 	private static String getTodaysFolderName() {
 		return FOLDER_FORMAT.format(LocalDate.now());
 	}
@@ -71,7 +79,6 @@ public final class FolderUtil {
 	 *
 	 * @param root the folder which will be used as the base path for todays folder
 	 * @return the path to todays folder
-	 * @throws IOException if something fails while creating the folder
 	 */
 	public static Optional<Path> createTodaysFolder(final Path root) {
 		try {
