@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.hlag.gwrp</groupId>
 	<artifactId>DailyFolder</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>1.0</version>
 
 	<parent>
 		<groupId>de.lars-sh</groupId>
