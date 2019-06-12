@@ -113,7 +113,7 @@ public final class FolderUtil {
 			return false;
 		}
 		try (Stream<Path> stream = Files.list(path)) {
-			return stream.count() == 0;
+			return stream.limit(2).count() == 0;
 		} catch (final IOException ignore) {
 			// TODO log exception
 			return false;

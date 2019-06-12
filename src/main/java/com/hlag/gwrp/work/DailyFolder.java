@@ -5,7 +5,6 @@ import static java.util.stream.Collectors.toSet;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -109,12 +108,12 @@ public class DailyFolder extends Application {
 				.stream()
 				.filter(path -> {
 					try {
-						if (Files.deleteIfExists(path)) {
+						if (FolderUtil.isFolderEmpty(path)) {
+							Files.delete(path);
 							System.out.println("Deleted: " + path.toAbsolutePath().toString());
-							return false;
 						}
-					} catch (final IOException e) {
-						throw new UncheckedIOException(e);
+					} catch (final IOException ignore) {
+						return false;
 					}
 					System.out.println("Not deleted: " + path.toAbsolutePath().toString());
 					return true;
