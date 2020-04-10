@@ -5,7 +5,6 @@ import java.io.InputStream
 import java.io.InputStreamReader
 import java.io.StringWriter
 import java.nio.charset.Charset
-import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -18,7 +17,7 @@ internal object FolderHelper {
             else -> null
         }
 
-    val desktopAvailable: Boolean get() = getDesktopFolder()?.let { it != null && Files.exists(it) } ?: false
+    val desktopAvailable: Boolean get() = getDesktopFolder()?.let { Files.exists(it) } ?: false
 }
 
 private enum class OperatingSystem(private val searchStrings: List<String>) {

@@ -32,10 +32,10 @@ class Folder(
 
     fun getSubfolderContents() = dailyFolders.map { it to it.listNames() }
 
-    fun createFolderForToday() = Files.createDirectories(currentDailyFolder)
+    fun createFolderForToday() = Files.createDirectories(currentDailyFolder)!!
 
     fun deleteFolders(predicate: (Path) -> Boolean)= dailyFolders.filter(predicate).forEach(Files::delete)
-    fun deleteEmptyFolders() = deleteFolders { path.isEmpty() }
+    fun deleteEmptyFolders() = deleteFolders { it.isEmpty() }
 
-    val Path.name: String get() = fileName.toString()
+    private val Path.name: String get() = fileName.toString()
 }
