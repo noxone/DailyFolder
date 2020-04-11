@@ -9,7 +9,7 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
 
-internal object FolderHelper {
+object FolderHelper {
     fun getDesktopFolder(): Path? =
         when (OperatingSystem.current) {
             OperatingSystem.MacOsX -> System.getProperty("user.home")?.let { Paths.get(it, "Desktop") }

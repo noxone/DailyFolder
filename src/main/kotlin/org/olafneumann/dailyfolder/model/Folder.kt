@@ -8,7 +8,7 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
 class Folder(
-    val path: Path
+    private val path: Path
 ) {
     constructor() : this(FolderHelper.getDesktopFolder() ?: FileSystems.getDefault().rootDirectories.first()!!)
 
@@ -30,12 +30,13 @@ class Folder(
     val dailyFolders: List<Path> get() = path.listPaths().filter { it.matchesFolderPattern() }
     val currentDailyFolder: Path get() = path.resolve(currentDailyFolderName)
 
-    fun getSubfolderContents() = dailyFolders.map { it to it.listNames() }
+    fun listContentNames(path: Path) = path.listNames()
+    //fun getSubfolderContents() = dailyFolders.map { it to it.listNames() }
 
     fun createFolderForToday() = Files.createDirectories(currentDailyFolder)!!
 
-    fun deleteFolders(predicate: (Path) -> Boolean)= dailyFolders.filter(predicate).forEach(Files::delete)
-    fun deleteEmptyFolders() = deleteFolders { it.isEmpty() }
+    private fun deleteFolders(predicate: (Path) -> Boolean)= dailyFolders.filter(predicate).forEach(Files::delete)
+    fun deleteEmptyFolders() = deleteFolders { it.isEmpty() && it.name != currentDailyFolderName }
 
     private val Path.name: String get() = fileName.toString()
 }
