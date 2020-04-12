@@ -20,10 +20,7 @@ internal fun Path.listPaths(): List<Path> =
 
 /** Checks whether the current Path is an empty directory (or not a directory at all) */
 internal fun Path.isEmpty() =
-    if (Files.isDirectory(this))
-        Files.list(this).use { it.limit(2).count() == 0L }
-    else
-        false
+    Files.isDirectory(this) && Files.list(this).use { it.limit(2).count() == 0L }
 
 /**
  * Delete a given path and if it is a directory also delete its content
@@ -34,7 +31,7 @@ internal fun Path.isEmpty() =
 internal fun Path.deleteRecursively(): Boolean =
     Files.exists(this)
             && (!Files.isDirectory(this) || Files.list(this)
-        .use { it.asSequence().all { path -> path!!.deleteRecursively() } })
+                .use { it.asSequence().all { path -> path!!.deleteRecursively() } })
             && Files.deleteIfExists(this.also { logger.info("Delete: $it") })
 
 /** The actual name of the path */
