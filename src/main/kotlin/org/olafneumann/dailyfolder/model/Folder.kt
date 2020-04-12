@@ -34,6 +34,6 @@ class Folder(
 
     fun createFolderForToday() = Files.createDirectories(currentDailyFolder)!!
 
-    fun deleteFolders(predicate: (Path) -> Boolean) = dailyFolders.filter(predicate).forEach(Path::deleteRecursively)
+    fun deleteFolders(predicate: (Path) -> Boolean) = dailyFolders.filter(predicate).forEach { it.deleteRecursively() }
     fun deleteEmptyFolders() = deleteFolders { it.isEmpty() && it.name != currentDailyFolderName }
 }

@@ -32,8 +32,9 @@ internal fun Path.isEmpty() =
  */
 internal fun Path.deleteRecursively(): Boolean =
     Files.exists(this)
-            && Files.list(this).use { it.asSequence().all { path -> path!!.deleteRecursively() } }
-            && Files.deleteIfExists(this)
+            && (!Files.isDirectory(this) || Files.list(this)
+        .use { it.asSequence().all { path -> path!!.deleteRecursively() } })
+            && Files.deleteIfExists(this.also { println("Delete: $it") })
 
 /** The actual name of the path */
 internal val Path.name: String get() = fileName.toString()

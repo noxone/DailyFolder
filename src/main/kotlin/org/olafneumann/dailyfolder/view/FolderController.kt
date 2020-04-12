@@ -8,10 +8,15 @@ class FolderController : Controller() {
     private val folder = Folder.DEFAULT
 
     init {
+        folder.deleteEmptyFolders()
         folder.createFolderForToday()
     }
 
     private val foldersToShow: List<Path> get() = folder.dailyFolders.filter { it != folder.currentDailyFolder }
 
     val foldersToShowWithContent get() = foldersToShow.map { it to folder.listContentNames(it) }
+
+    fun deleteFolders(paths: Collection<Path>) {
+        folder.deleteFolders(paths::contains)
+    }
 }

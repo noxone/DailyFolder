@@ -1,6 +1,7 @@
 package org.olafneumann.dailyfolder
 
 import javafx.scene.control.Alert
+import javafx.scene.image.Image
 import javafx.stage.Stage
 import org.olafneumann.dailyfolder.helper.FolderHelper.desktopAvailable
 import org.olafneumann.dailyfolder.view.FolderDeletionView
@@ -17,13 +18,21 @@ class DailyFolderApp : App(FolderDeletionView::class) {
             alert(
                 type = Alert.AlertType.ERROR,
                 header = "No Desktop found",
-                content = "Not desktop folder could be found or the configured desktop folder does not exist.",
-                title = "No Desktop found"
+                title = "No Desktop found",
+                content = "Not desktop folder could be found or the configured desktop folder does not exist."
             )
             throw RuntimeException("No desktop available")
         }
 
         super.start(stage)
+
+        stage.minWidth = FolderDeletionView.MIN_WIDTH
+        stage.minHeight = FolderDeletionView.MIN_HEIGHT
+        stage.isResizable = false
+    }
+
+    companion object {
+        fun loadImage(name: String): Image? = DailyFolderApp::class.java.getResourceAsStream(name)?.use { Image(it) }
     }
 }
 
