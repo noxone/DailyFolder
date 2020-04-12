@@ -4,7 +4,7 @@
 
     <groupId>org.olafneumann</groupId>
     <artifactId>daily-folder</artifactId>
-    <version>1.0</version>
+    <version>1.0.1-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <name>Daily Folder</name>
