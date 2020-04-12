@@ -23,7 +23,8 @@ object FolderHelper {
 private enum class OperatingSystem(private val searchStrings: List<String>) {
     Windows(listOf("windows")),
     MacOsX(listOf("mac os x")),
-    Linux(listOf("nix", "nux"));
+    // Linux(listOf("nix", "nux")),
+    ;
 
     companion object {
         val current: OperatingSystem?

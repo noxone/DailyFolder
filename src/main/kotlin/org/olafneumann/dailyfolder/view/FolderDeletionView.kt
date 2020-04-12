@@ -4,12 +4,10 @@ import javafx.beans.binding.When
 import javafx.beans.property.SimpleIntegerProperty
 import javafx.geometry.Insets
 import javafx.scene.control.CheckBox
-import javafx.scene.image.Image
 import org.olafneumann.dailyfolder.DailyFolderApp
 import org.olafneumann.dailyfolder.model.name
 import tornadofx.*
 import java.nio.file.Path
-import java.nio.file.Paths
 
 class FolderDeletionView : View(title = "Daily Folder") {
     companion object {
