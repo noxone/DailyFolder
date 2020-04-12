@@ -1,5 +1,6 @@
 package org.olafneumann.dailyfolder.model
 
+import org.olafneumann.dailyfolder.logger
 import java.nio.file.Files
 import java.nio.file.Path
 import kotlin.streams.asSequence
@@ -34,7 +35,7 @@ internal fun Path.deleteRecursively(): Boolean =
     Files.exists(this)
             && (!Files.isDirectory(this) || Files.list(this)
         .use { it.asSequence().all { path -> path!!.deleteRecursively() } })
-            && Files.deleteIfExists(this.also { println("Delete: $it") })
+            && Files.deleteIfExists(this.also { logger.info("Delete: $it") })
 
 /** The actual name of the path */
 internal val Path.name: String get() = fileName.toString()

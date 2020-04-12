@@ -17,7 +17,7 @@ class FolderDeletionView : View(title = "Daily Folder") {
          const val MIN_HEIGHT = 10.0
         private const val VIEW_PADDING = 10.0
 
-        private const val ELEMENT_SPACING = 5.0
+        private const val ELEMENT_SPACING = 10.0
         private val ELEMENT_MAX_WIDTH = Double.MAX_VALUE
 
         private const val TOOLTIP_MAX_ITEMS = 15

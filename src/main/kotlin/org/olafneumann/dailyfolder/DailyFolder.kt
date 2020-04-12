@@ -6,6 +6,12 @@ import javafx.stage.Stage
 import org.olafneumann.dailyfolder.helper.FolderHelper.desktopAvailable
 import org.olafneumann.dailyfolder.view.FolderDeletionView
 import tornadofx.*
+import java.util.logging.Logger
+
+/** Main application entry point */
+fun main() = launch<DailyFolderApp>()
+
+inline val Any.logger get() = Logger.getLogger(this::class.java.name)!!
 
 /** main application class defining the initial view to be shown */
 class DailyFolderApp : App(FolderDeletionView::class) {
@@ -35,6 +41,3 @@ class DailyFolderApp : App(FolderDeletionView::class) {
         fun loadImage(name: String): Image? = DailyFolderApp::class.java.getResourceAsStream(name)?.use { Image(it) }
     }
 }
-
-/** Main application entry point */
-fun main() = launch<DailyFolderApp>()
