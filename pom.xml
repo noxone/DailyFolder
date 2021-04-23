@@ -41,7 +41,7 @@
         <kotlin.code.style>official</kotlin.code.style>
         <junit.version>5.7.0</junit.version>
 
-        <dokka.version>1.4.20</dokka.version>
+        <dokka.version>1.4.32</dokka.version>
     </properties>
 
     <dependencies>
